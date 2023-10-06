@@ -192,3 +192,168 @@ from orders a
 left join orders b on a.customernumber = b.customerNumber and substr(A.orderdate, 1, 4) = substr(B.orderdate, 1, 4) -1
 left join customers c on a.customernumber = c.customernumber
 group by 1, 2;
+
+-- p.115
+-- 국가별 Top Product 및 매출
+-- 미국의 연도별 Top5 차량 모델 추출 --> 매출액 기준
+-- order, orderdetails, customers 테이블 지금까지 사용
+-- products 테이블 추가 필요
+USE classicmodels;
+create table product_sales as
+select
+	D.productname
+    , SUM(quantityordered * priceeach) as sales
+from orders A
+left join customers B on A.customernumber = B.customernumber
+left join orderdetails C on A.ordernumber = C.ordernumber
+left join products D on C.productcode = D.productcode
+where B.country = 'USA'
+group by 1;
+
+select *
+from product_sales;
+
+SELECT * 
+FROM (
+	SELECT *
+    , ROW_NUMBER() OVER(ORDER BY sales DESC) RNK
+    FROM product_sales) A
+WHERE RNK <= 5
+ORDER BY RNK;
+
+-- [Churn Rate(%)]
+-- 이탈고객
+-- max(구매일,접속일) 이후 일정기간 구매, 접속하지 않은 상태
+select
+	MAX(orderdate) mx_order -- 마지막 구매일
+    , MIN(orderdate) mn_order -- 최초 구매일
+from orders;
+
+-- 2005-06-01일 기준으로 각 고객의 마지막 구매일이 며칠 소요되는가?
+select
+	customernumber
+    , MIN(orderdate) '최초 구매일' -- 최초 구매일
+	, MAX(orderdate) '마지막 구매일' -- 마지막 구매일
+from orders
+group by 1
+order by 1;
+
+-- DATADIFF 사용(date1, date2)
+select
+	customernumber
+    , MAX(orderdate) MX_ORDER -- 이 테이블의 마지막 구매일(전 고객 기준)
+							  -- group by 마지막 구매일(각 고객 기준)
+from orders
+group by 1;
+
+select
+	customernumber
+    , MX_ORDER
+    , '2005-06-01'
+    , DATEDIFF('2005-06-01', MX_ORDER) DIFF
+from(
+select
+	customernumber
+    , MAX(orderdate) MX_ORDER 
+from orders
+group by 1) BASE;
+
+
+-- p.119 하단
+-- 조건 DIFF가 90일 이상이면 Churn이라고 가정한다.
+select
+	customernumber
+    , MX_ORDER
+    , '2005-06-01'
+    , DATEDIFF('2005-06-01', MX_ORDER) DIFF
+from(
+select
+	customernumber
+    , MAX(orderdate) MX_ORDER 
+from orders
+group by 1) BASE;
+
+select
+	*
+	,case when DIFF >= 90 then 'Churn'
+	else 'Non Churn'
+    end CHURN_TYPE
+from(
+	select
+		customernumber
+		, MX_ORDER
+		, '2005-06-01'
+		, DATEDIFF('2005-06-01', MX_ORDER) DIFF
+	from(
+		select
+			customernumber
+			, MAX(orderdate) MX_ORDER 
+		from orders
+		group by 1) BASE1
+) BASE2;
+
+-- CHURN Rate
+select
+	case when DIFF >= 90 then 'Churn'
+	else 'Non Churn'
+    end CHURN_TYPE
+    , count(distinct customernumber) N_CUS
+from(
+	select
+		customernumber
+		, MX_ORDER
+		, '2005-06-01'
+		, DATEDIFF('2005-06-01', MX_ORDER) DIFF
+	from(
+		select
+			customernumber
+			, MAX(orderdate) MX_ORDER 
+		from orders
+		group by 1) BASE1
+) BASE2
+group by 1;
+
+select 69/(69+29);
+
+-- CHURN 고객이 가장 많이 구매한 productline
+CREATE TABLE churn_list AS 
+SELECT 
+	CASE WHEN DIFF >= 90 THEN 'CHURN ' ELSE 'NON-CHURN' END CHURN_TYPE
+    , customernumber
+FROM 
+	(
+		SELECT 
+			customernumber
+			, mx_order
+			, '2005-06-01' END_POINT
+			, DATEDIFF('2005-06-01', mx_order) DIFF
+		FROM
+			(
+				SELECT 
+					customernumber
+					, max(orderdate) mx_order
+				FROM orders
+				GROUP BY 1
+			) BASE
+    ) BASE
+;
+
+select *
+from churn_list;
+
+select * 
+from productlines;
+
+-- p.122
+select
+	D.churn_type
+	, C.productline
+    , count(distinct B.customernumber) BU
+from orderdetails A
+left join orders B on A.ordernumber = B.ordernumber
+left join products C on A.productcode = C.productcode
+left join churn_list D on B.customernumber = D.customernumber
+group by 1, 2;
+
+select *
+from payments;

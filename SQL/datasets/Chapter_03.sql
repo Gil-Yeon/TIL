@@ -11,11 +11,11 @@ CREATE TABLE IF NOT EXISTS tasks (
     , PRIMARY KEY (task_id)
 );
 
--- 교재 p.72 문법 확인 
+-- 교재 p.72 insert
 INSERT INTO tasks(title, priority)
 VALUES ('Learn MySql', 1);
 
--- [SELECT]
+-- select로 삽입됐는지 확인
 SELECT * FROM tasks;
 
 INSERT INTO tasks(title, priority)
