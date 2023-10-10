@@ -199,3 +199,102 @@ from(
 	) a
 ) a
 where rnk = 1;
+
+-- p.143, Review Text 분석
+use mydata;
+select 
+	`review text`
+	, case when `review text` like '%size%' then 1 else 0 end size_yn
+from dataset2;
+
+select
+	sum(case when `review text` like '%size%' then 1 else 0 end) n_size
+	, count(*) n_total
+from dataset2;
+
+select
+	a.*
+    , n_size/n_total
+from (
+	select
+		sum(case when `review text` like '%size%' then 1 else 0 end) n_size
+		, count(*) n_total
+	from dataset2
+)a;
+
+select
+	sum(case when `review text` like '%size%' then 1 else 0 end) n_size
+    , sum(case when `review text` like '%large%' then 1 else 0 end) n_large
+    , sum(case when `review text` like '%loose%' then 1 else 0 end) n_loose
+    , sum(case when `review text` like '%small%' then 1 else 0 end) n_small
+    , sum(case when `review text` like '%tight%' then 1 else 0 end) n_tight
+	, count(*) n_total
+from dataset2;
+
+select
+	`department name`
+	, sum(case when `review text` like '%size%' then 1 else 0 end) n_size
+    , sum(case when `review text` like '%large%' then 1 else 0 end) n_large
+    , sum(case when `review text` like '%loose%' then 1 else 0 end) n_loose
+    , sum(case when `review text` like '%small%' then 1 else 0 end) n_small
+    , sum(case when `review text` like '%tight%' then 1 else 0 end) n_tight
+	, count(*) n_total
+from dataset2
+group by 1;
+
+select
+	floor(age/10) * 10 ageband
+	, `department name`
+	, sum(case when `review text` like '%size%' then 1 else 0 end) n_size
+    , sum(case when `review text` like '%large%' then 1 else 0 end) n_large
+    , sum(case when `review text` like '%loose%' then 1 else 0 end) n_loose
+    , sum(case when `review text` like '%small%' then 1 else 0 end) n_small
+    , sum(case when `review text` like '%tight%' then 1 else 0 end) n_tight
+	, count(*) n_total
+from dataset2
+group by 1, 2
+order by 1, 2;
+
+select
+	floor(age/10) * 10 ageband
+	, `department name`
+	, sum(case when `review text` like '%size%' then 1 else 0 end) / count(*) n_size
+    , sum(case when `review text` like '%large%' then 1 else 0 end) / count(*)  n_large
+    , sum(case when `review text` like '%loose%' then 1 else 0 end) / count(*)  n_loose
+    , sum(case when `review text` like '%small%' then 1 else 0 end) / count(*)  n_small
+    , sum(case when `review text` like '%tight%' then 1 else 0 end) / count(*)  n_tight
+from dataset2
+group by 1, 2
+order by 1, 2;
+
+select
+	`clothing id`
+    , sum(case when `review text` like '%size%' then 1 else 0 end) n_size
+from dataset2
+group by 1;
+
+select
+	`clothing id`
+    , sum(case when `review text` like '%size%' then 1 else 0 end) / count(*) n_size
+    , sum(case when `review text` like '%large%' then 1 else 0 end) / count(*)  n_large
+    , sum(case when `review text` like '%loose%' then 1 else 0 end) / count(*)  n_loose
+    , sum(case when `review text` like '%small%' then 1 else 0 end) / count(*)  n_small
+    , sum(case when `review text` like '%tight%' then 1 else 0 end) / count(*)  n_tight
+    , count(*) n_total
+from dataset2
+group by 1;
+
+create table size_stat
+select
+	`clothing id`
+    , sum(case when `review text` like '%size%' then 1 else 0 end) / count(*) n_size
+    , sum(case when `review text` like '%large%' then 1 else 0 end) / count(*)  n_large
+    , sum(case when `review text` like '%loose%' then 1 else 0 end) / count(*)  n_loose
+    , sum(case when `review text` like '%small%' then 1 else 0 end) / count(*)  n_small
+    , sum(case when `review text` like '%tight%' then 1 else 0 end) / count(*)  n_tight
+    , count(*) n_total
+from dataset2
+group by 1;
+
+select *
+from size_stat;
