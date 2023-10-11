@@ -290,30 +290,111 @@ from(
 select count(distinct user_id)
 from orders;
 
-select
-	*
-    , case when rnk <= 316 then 'Quantile_1'
-    when rnk <= 632 then 'Quantile_2'
-    when rnk <= 948 then 'Quantile_3'
-    when rnk <= 1264 then 'Quantile_4'
-    when rnk <= 1580 then 'Quantile_5'
-    when rnk <= 1895 then 'Quantile_6'
-    when rnk <= 2211 then 'Quantile_7'
-    when rnk <= 2527 then 'Quantile_8'
-    when rnk <= 2843 then 'Quantile_9'
-    when rnk <= 3159 then 'Quantile_10' end quantile
-from(
-	select
+-- 코드 자동화를 위해 수정
+SELECT 
+	*, 
+    CASE WHEN RNK <= (SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10 THEN 'Quantile_1'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*2 THEN 'Quantile_2'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*3 THEN 'Quantile_3'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*4 THEN 'Quantile_4'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*5 THEN 'Quantile_5'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*6 THEN 'Quantile_6'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*7 THEN 'Quantile_7'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*7 THEN 'Quantile_7'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*8 THEN 'Quantile_8'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*9 THEN 'Quantile_9'
+	when rnk <= ((SELECT COUNT(DISTINCT user_id)
+						FROM 
+							(SELECT 
+								user_id
+								, COUNT(DISTINCT order_id) F
+							 FROM orders
+							 GROUP BY 1
+						) A)/10)*10 THEN 'Quantile_10' end quantile
+FROM (
+	SELECT 
 		*
-		, row_number() over(order by f desc) rnk
-	from(
-		select
+		, ROW_NUMBER() OVER(ORDER BY F DESC) RNK
+	FROM (
+		SELECT 
 			user_id
-			, count(*) f
-		from orders
-		group by 1
-	) a
-) a;
+			, COUNT(DISTINCT order_id) AS F
+		FROM 
+			orders
+		GROUP BY 1
+	) A
+) A 
+;
 
 -- user_id별 분위 수 정보 테이블 생성
 create temporary table user_quantile as
@@ -386,5 +467,104 @@ left join products b on a.product_id = b.product_id
 group by 1, 2
 having count(distinct order_id) > 10
 order by 1;
+
+-- 다음 구매까지의 소요기간, 재구매 관계
+select
+	*
+    , row_number() over(order by ret_ratio desc) rnk
+from(
+	select
+		product_id
+        , sum(reordered) / count(*) ret_ratio
+	from order_products__prior
+    group by 1
+) a;
+
+-- 전체 상품 수
+select count(distinct product_id)
+from order_products__prior;
+
+-- 상품 10개 그룹으로 나누기 자동화
+create temporary table product_repurchase_quantile as
+select
+	*
+    , case when rnk <= (select count(distinct product_id)
+						from order_products__prior)/10 then 'Q_1'
+          when rnk <= ((select count(distinct product_id)
+						from order_products__prior)/10) * 2 then 'Q_2'
+          when rnk <= ((select count(distinct product_id)
+						from order_products__prior)/10) * 3 then 'Q_3'
+          when rnk <= ((select count(distinct product_id)
+						from order_products__prior)/10) * 4 then 'Q_4'
+          when rnk <= ((select count(distinct product_id)
+						from order_products__prior)/10) * 5 then 'Q_5'
+          when rnk <= ((select count(distinct product_id)
+						from order_products__prior)/10) * 6 then 'Q_6'
+          when rnk <= ((select count(distinct product_id)
+						from order_products__prior)/10) * 7 then 'Q_7'
+          when rnk <= ((select count(distinct product_id)
+						from order_products__prior)/10) * 8 then 'Q_8'
+          when rnk <= ((select count(distinct product_id)
+						from order_products__prior)/10) * 9 then 'Q_9'
+          when rnk <= ((select count(distinct product_id)
+						from order_products__prior)/10) * 10 then 'Q_10' end rnk_grp
+from(
+	select
+		a.product_id
+		, row_number() over(order by ret_ratio desc) rnk
+	from(
+		select
+			product_id
+			, sum(reordered) / count(*) ret_ratio
+		from order_products__prior
+		group by 1
+	) a
+) a;
+
+select *
+from product_repurchase_quantile;
+
+create temporary table order_products_prior2 as
+select
+	product_id
+	, days_since_prior_order
+from order_products__prior a
+inner join orders b on a.order_id = b.order_id;
+
+select *
+from order_products_prior2;
+
+select
+	a.rnk_grp
+    , a.product_id
+    , variance(days_since_prior_order) var_days
+from product_repurchase_quantile a
+left join order_products_prior2 b on a.product_id = b.product_id
+group by 1, 2
+order by 1;
+
+select
+	rnk_grp
+	, avg(var_days) avg_var_days
+from(
+	select
+		a.rnk_grp
+		, a.product_id
+		, variance(days_since_prior_order) var_days
+	from product_repurchase_quantile a
+	left join order_products_prior2 b on a.product_id = b.product_id
+	group by 1, 2
+	order by 1
+) a
+group by 1; # 결론 : 재주문율이 높은 상품이라고 해서 구매 주기가 일정하지는 않다.
+
+-- 분산분석
+-- 3개 이상의 그룹 비교
+-- p value 0.05 이하 ==> 대립가설 채택
+-- 사후분석 ==> 두 그룹으로 쪼개서, 두 그룹간의 평균 비교
+-- Q_1 vs Q_2 비교, Q_3 ... Q_10
+-- Q_2 vs Q_3 비교, Q_4 ... Q_10
+-- ...
+-- Q_9 vs Q_10
 
 -- 쿼리의 순서는 from where group by having select order by
