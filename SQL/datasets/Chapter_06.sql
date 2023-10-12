@@ -164,7 +164,6 @@ from(
 ) a
 where 합계 >= 10;
 
-
 -- department별 재구매율이 높은 상품 10개
 select
 	*

@@ -100,3 +100,177 @@ from(
 	left join (select customerid, invoicedate, UnitPrice*Quantity sales from dataset3) b
 	on a.customerid = b.customerid
 group by 1, 2;
+
+-- p.206
+use mydata;
+
+-- RFM : 가치있는 고객을 추출하는 방법론, 고객 세그먼트
+-- p.207
+-- R - Rencency : 최근 구매일
+-- F - Frequency : 구매 횟수
+-- M : Monetary : 구매 금액 합계
+select * from dataset3;
+
+-- Recency : 계산해보자, 거래의 최근성을 나타내는 지표
+select
+	customerid
+    , max(invoicedate) mxdt
+from dataset3
+group by 1;
+
+-- 최근 거래날짜로부터 2011-12-02까지의 날짜차이 계산
+select
+	customerid
+    , datediff('2011-12-02', mxdt) recency
+from(
+	select
+		customerid
+		, max(invoicedate) mxdt
+	from dataset3
+	group by 1
+) a;
+
+-- frequency, moneytary 계산
+select
+	customerid
+    , count(distinct invoiceno) frequency
+    , sum(quantity * unitprice) moneytary
+from dataset3
+group by 1;
+
+select
+	customerid
+    , datediff('2011-12-02', mxdt) recency
+    , frequency
+    , moneytary
+from (
+	select
+		customerid
+		, max(invoicedate) mxdt
+		, count(distinct invoiceno) frequency
+		, sum(quantity * unitprice) moneytary
+	from dataset3
+	group by 1
+) a;
+
+-- 동일한 상품을 2개 연도에 걸쳐 구매한 고객과 그렇지 않은 고객을 segment로 나눔
+-- 데이터가 없어도 기획력만 좋으면 파생변수로 얻는다
+select
+	customerid
+    , stockcode
+    , count(distinct substr(invoicedate, 1, 4)) unique_yy
+from dataset3
+group by 1, 2;
+
+-- unique_yy가 2이상인 고객과 그렇지 않은 고객으로 구분
+select
+	customerid
+    , max(unique_yy) mx_unique_yy
+from(
+	select
+		customerid
+		, stockcode
+		, count(distinct substr(invoicedate, 1, 4)) unique_yy
+	from dataset3
+	group by 1, 2
+) a
+group by 1
+order by 2 desc;
+
+-- 문제 mx_unique_yy가 2이상이면 1 아니면 0
+select
+	customerid
+    , case when mx_unique_yy >= 2 then 1 else 0 end repurchase_segment
+from(
+	select
+		customerid
+		, max(unique_yy) mx_unique_yy
+	from(
+		select
+			customerid
+			, stockcode
+			, count(distinct substr(invoicedate, 1, 4)) unique_yy
+		from dataset3
+		group by 1, 2
+	) a
+	group by 1
+) a
+order by 1;
+
+-- p213
+-- 일자별 첫 구매자 수
+-- 일자별 첫 구매자 수를 계산한다. -> 목적이 신규 유저를 확인하는 것
+-- 예) 2006-01-01에 첫 구매한 고객수는 몇 명인지 
+
+-- 고객 별 첫 구매일
+select
+	customerid
+    , min(invoicedate) mndt
+from dataset3
+group by 1;
+
+-- 첫 구매일별로 신규 고객 수를 count
+select
+	mndt
+    , count(distinct customerid) bu
+from(
+	select
+		customerid
+		, min(invoicedate) mndt
+	from dataset3
+	group by 1
+) a
+group by 1;
+
+-- p219
+-- 첫 구매 후 이탈하는 고객의 비중
+
+-- 고객 별 구매일자의 수
+select
+	customerid
+    , count(distinct invoicedate) f_date
+from dataset3
+group by 1;
+
+-- 숫자 1의 의미는 첫 구매 후 이탈한 고객
+select
+	customerid
+	,case when f_date = 1 then 1 else 0 end b_cnt
+from(
+	select
+		customerid
+		, count(distinct invoicedate) f_date
+	from dataset3
+	group by 1
+) a;
+
+select
+	sum(case when f_date = 1 then 1 else 0 end) / count(*) bounc_rate
+from(
+	select
+		customerid
+		, count(distinct invoicedate) f_date
+	from dataset3
+	group by 1
+) a;
+
+select
+	customerid
+	, country
+	, count(distinct invoicedate) f_date
+from dataset3
+group by 1, 2;
+
+select
+	country
+	, sum(case when f_date = 1 then 1 else 0 end) / count(*) bounc_rate
+from(
+	select
+		customerid
+		, country
+		, count(distinct invoicedate) f_date
+	from dataset3
+	group by 1, 2
+) a
+group by 1
+order by 1;
