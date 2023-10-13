@@ -95,8 +95,8 @@ select
     , timestampdiff(month, mndt, invoicedate) datediff
     , count(distinct a.customerid) bu
     , sum(sales) sales
-from(
-	select customerid, min(invoicedate) mndt from dataset3 group by 1) a
+from
+	(select customerid, min(invoicedate) mndt from dataset3 group by 1) a
 	left join (select customerid, invoicedate, UnitPrice*Quantity sales from dataset3) b
 	on a.customerid = b.customerid
 group by 1, 2;
