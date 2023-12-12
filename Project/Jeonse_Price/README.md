@@ -59,9 +59,6 @@ $ streamlit run Main_app.py
   </tr>
 </table>
 
-![화면 캡처 2023-12-12 154515](https://github.com/Gil-Yeon/TIL/assets/90386792/b284a436-00c3-410d-a9d6-b64ff7c6064d)
-![화면 캡처 2023-12-12 154609](https://github.com/Gil-Yeon/TIL/assets/90386792/94e6e01b-d4b9-4b8f-8e5e-bfcee216d84c)
-
 # 5. 주요 기능
 배포된 저희 웹사이트를 이용하시면 아래의 기능들을 사용하실 수 있습니다.
   - 전세가 예측을 기반으로 한 전세계약의 안정성 파악
