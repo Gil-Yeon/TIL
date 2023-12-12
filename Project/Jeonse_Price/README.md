@@ -1,3 +1,4 @@
+
 # 1. 프로젝트 정보
 ## 전세가 예측 모델을 활용한 전세사기 예방 프로젝트
 
@@ -21,8 +22,52 @@ https://jeonseapp-q98zbyabcszasknduhe4pe.streamlit.app/
   - 주변 인프라 정보 제공
 
 # 2. 시작 가이드
-## 실행환경
+## Requirements
+- Python 3.11.5
+- Visual Studio Code 1.85
 
-## 요구사항
+## Installation
+```
+$ git clone https://github.com/Gil-Yeon/Jeonse_Streamlit.git
+$ cd Jeonse_Streamlit
+$ pip install -r requirements.txt
+$ streamlit run Main_app.py
+```
+# 3. 기술 스택
+## Environment
+ <img src="https://img.shields.io/badge/Jupyter Notebook-F37626?style=for-the-badge&logo=Jupyter&logoColor=white">
+<img  src="https://img.shields.io/badge/VISUAL STUDIO CODE-007ACC?style=for-the-badge&logo=Visualstudiocode&logoColor=white">
+<img src="https://img.shields.io/badge/표시할이름-색상?style=for-the-badge&logo=기술스택아이콘&logoColor=white">
 
-## 설치
+## Language
+ <img src="https://img.shields.io/badge/python-3776AB?style=for-the-badge&logo=python&logoColor=white">
+
+## Libraries and Packages
+
+## Communication
+
+
+-   Data Preprocessing
+    -   Pandas
+    -   Numpy
+    -   Sklearn.IsolationForest
+    -   XGBoost
+-   Statistics
+    -   Logistic Regression
+    -   VIF
+    -   Wald Test
+    -   Prophet
+-   Machine Learning
+    -   KNN
+    -   Random Forest
+    -   LightGBM
+    -   XGBoost
+-   Deep Learning
+    -   FNN
+    -   LSTM
+    -   GRU
+-   Data Visulization
+    -   matplotlib
+    -   seaborn
+-   Dashboard
+    -   streamlit
