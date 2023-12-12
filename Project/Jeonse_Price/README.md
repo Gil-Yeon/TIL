@@ -70,3 +70,4 @@ $ streamlit run Main_app.py
  - 주소를 입력하면 공원/학교/지하철의 주변 인프라 정보를 확인 가능
 
 # 6. 아키텍쳐
+![image](https://github.com/Gil-Yeon/TIL/assets/90386792/ab98b466-3889-4980-8ab5-4b85ee479798)
